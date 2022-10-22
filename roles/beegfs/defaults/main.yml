@@ -1,0 +1,16 @@
+---
+beegfs_release: "7.3.2"
+beegfs_target_os: "focal"
+beegfs_repo_url: "https://www.beegfs.io/release/beegfs_{{ beegfs_release }}/dists/beegfs-{{ beegfs_target_os }}.list"
+beegfs_repo_file: "/etc/apt/sources.list.d/beegfs.list"
+beegfs_repo_key: "https://www.beegfs.io/release/beegfs_{{ beegfs_release }}/gpg/GPG-KEY-beegfs"
+
+# Management service options
+beegfs_mgmt_path: "/data/beegfs/beegfs_mgmtd"
+beegfs_mgmt_host: "localhost"
+
+# Metadata service options
+beegfs_meta_path: "/data/beegfs/beegfs_meta"
+
+# Storage service options
+beegfs_storage_path: "/mnt/vdc/storage1"

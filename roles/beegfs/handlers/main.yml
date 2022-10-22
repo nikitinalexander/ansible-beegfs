@@ -1,0 +1,31 @@
+---
+- name: Restart BeeGFS mgmt service
+  systemd:
+    name: beegfs-mgmtd
+    daemon-reload: true
+    state: restarted
+  become: true
+
+- name: Restart BeeGFS meta service
+  systemd:
+    name: beegfs-meta
+    daemon-reload: true
+    state: restarted
+  become: true
+
+- name: Restart BeeGFS storage service
+  systemd:
+    name: beegfs-storage
+    daemon-reload: true
+    state: restarted
+  become: true
+
+- name: Restart BeeGFS client service
+  systemd:
+    name: "{{ item }}"
+    daemon-reload: true
+    state: restarted
+  become: true
+  with_items:
+    - beegfs-helperd
+    - beegfs-client
