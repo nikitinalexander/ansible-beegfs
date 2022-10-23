@@ -13,4 +13,4 @@ beegfs_mgmt_host: "localhost"
 beegfs_meta_path: "/data/beegfs/beegfs_meta"
 
 # Storage service options
-beegfs_storage_path: "/mnt/vdc/storage1"
+beegfs_storage_path: "/mnt/storage1"

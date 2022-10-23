@@ -11,10 +11,23 @@
     state: present
   become: true
 
-- name: Install packages for BeeGFS management server
-  ansible.builtin.package:
-    name: beegfs-mgmtd
-    state: present
+- name: Update repositories cache
+  ansible.builtin.apt:
+    update_cache: yes
+  become: true
+
+- name: Create auth file for authenticating services
+  ansible.builtin.command: "dd if=/dev/random of=/etc/beegfs/connauthfile bs=128 count=1"
+  args:
+    creates: "/etc/beegfs/connauthfile"
+  become: true
+
+- name: Change file ownership, group and permissions of the auth file
+  ansible.builtin.file:
+    path: "/etc/beegfs/connauthfile"
+    owner: root
+    group: root
+    mode: '0400'
   become: true
 
 - name: Create directory for BeeGFS management service data
@@ -23,10 +36,22 @@
     state: directory
   become: true
 
+- name: Create directory for BeeGFS metadata service data
+  ansible.builtin.file:
+    path: "{{ beegfs_meta_path }}"
+    state: directory
+  become: true
+
+- name: Install packages for BeeGFS management server
+  ansible.builtin.package:
+    name: beegfs-mgmtd
+    state: present
+  become: true
+
 - name: Run management service setup script
   ansible.builtin.command: "/opt/beegfs/sbin/beegfs-setup-mgmtd -p {{ beegfs_mgmt_path }}"
   args:
-    creates: "{{ beegfs_mgmt_path }}/originalNodeID"
+    creates: "{{ beegfs_mgmt_path }}/format.conf"
   become: true
 
 - name: Update authentication string in management service config
@@ -34,14 +59,9 @@
     path: /etc/beegfs/beegfs-mgmtd.conf
     regexp: "^connAuthFile"
     line: "connAuthFile                           = /etc/beegfs/connauthfile"
+  changed_when: true
   become: true
   notify: Restart BeeGFS mgmt service
-
-- name: Create directory for BeeGFS metadata service data
-  ansible.builtin.file:
-    path: "{{ beegfs_meta_path }}"
-    state: directory
-  become: true
 
 - name: Install packages for BeeGFS metadata server
   ansible.builtin.package:
@@ -52,7 +72,7 @@
 - name: Run metadata service setup script
   command: "/opt/beegfs/sbin/beegfs-setup-meta -p {{ beegfs_meta_path }} -s 1 -m {{ beegfs_mgmt_host }}"
   args:
-    creates: "{{ beegfs_meta_path }}/originalNodeID"
+    creates: "{{ beegfs_meta_path }}/format.conf"
   become: true
 
 - name: Update authentication string in metadata service config
@@ -61,6 +81,7 @@
     regexp: "^connAuthFile"
     line: "connAuthFile                           = /etc/beegfs/connauthfile"
   become: true
+  changed_when: true
   notify: Restart BeeGFS meta service
 
 - name: Install packages for BeeGFS storage server
@@ -72,7 +93,7 @@
 - name: Run storage service setup script
   command: "/opt/beegfs/sbin/beegfs-setup-storage -p {{ beegfs_storage_path }} -s 1 -i 101 -m {{ beegfs_mgmt_host }}"
   args:
-    creates: "{{ beegfs_storage_path }}/originalNodeID"
+    creates: "{{ beegfs_storage_path }}/format.conf"
   become: true  
 
 - name: Update authentication string in storage service config
@@ -81,6 +102,7 @@
     regexp: "^connAuthFile"
     line: "connAuthFile                           = /etc/beegfs/connauthfile"
   become: true
+  changed_when: true
   notify: Restart BeeGFS storage service
   
 - name: Install packages for BeeGFS client
@@ -110,4 +132,5 @@
     regexp: "^connAuthFile"
     line: "connAuthFile                           = /etc/beegfs/connauthfile"
   become: true
+  changed_when: true
   notify: Restart BeeGFS client service
